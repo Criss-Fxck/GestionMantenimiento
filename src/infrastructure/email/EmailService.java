@@ -1,31 +1,47 @@
 package infrastructure.email;
 
-import domain.model.SolicitudMantenimiento;
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import java.util.Properties;
 
 public class EmailService {
 
-    public static void enviarTicketPorCorreo(String emailDestino, SolicitudMantenimiento solicitud) {
-        System.out.println("\n==================================================");
-        System.out.println("📩 [API REST / EMAIL SERVICE] Generando notificación");
-        System.out.println("==================================================");
+    // Configuración del remitente (tu cuenta de Gmail)
+    private static final String REMITENTE = "gestion.mantenimiento67@gmail.com";
+    private static final String CLAVE_APLICACION = "myje xuze jhle gbgn"; // Las 16 letras de Google
 
-        String asunto = "Ticket #" + solicitud.getIdSolicitud() + " - Estado: " + solicitud.getEstado();
+    public static void enviarCorreo(String emailDestino, String asunto, String cuerpoEmail) {
+        // 1. Configuración de propiedades SMTP de Gmail
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
 
-        String cuerpoEmail = "Hola " + solicitud.getSolicitante().getNombre() + ",\n\n"
-                + "Tu solicitud de mantenimiento ha sido procesada correctamente.\n\n"
-                + "RESUMEN DEL TICKET:\n"
-                + "- Número de Ticket: #" + solicitud.getIdSolicitud() + "\n"
-                + "- Estado Actual: " + solicitud.getEstado() + "\n"
-                + "- domain.model.Equipo: " + solicitud.getEquipo().getNombre() + " (" + solicitud.getEquipo().getUbicacion() + ")\n"
-                + "- Descripción de la Falla: " + solicitud.getDescripcionFalla() + "\n"
-                + "- Técnico Asignado: " + (solicitud.getTecnicoAsignado() != null ? solicitud.getTecnicoAsignado().getNombre() : "Pendiente") + "\n\n"
-                + "Atentamente,\nSistema de Mantenimiento.";
+        // 2. Autenticación
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(REMITENTE, CLAVE_APLICACION);
+            }
+        });
 
-        System.out.println("Para: " + emailDestino);
-        System.out.println("Asunto: " + asunto);
-        System.out.println("\nCuerpo del mensaje:\n" + cuerpoEmail);
-        System.out.println("--------------------------------------------------");
-        System.out.println("✅ [STATUS 200 OK] Correo enviado exitosamente a " + emailDestino);
-        System.out.println("==================================================\n");
+        try {
+            // 3. Crear el mensaje
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(REMITENTE));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailDestino));
+            message.setSubject(asunto);
+            message.setText(cuerpoEmail);
+
+            // 4. Enviar
+            Transport.send(message);
+            System.out.println("✅ Correo enviado exitosamente a: " + emailDestino);
+
+        } catch (MessagingException e) {
+            System.err.println("❌ Error al enviar el correo: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

@@ -37,6 +37,16 @@ public class Main {
         solicitud1.mostrarDetalle();
 
         // Ejecutar notificación de correo
-        EmailService.enviarTicketPorCorreo(solicitante1.getEmail(), solicitud1);
+        // Construir el cuerpo del mensaje
+        String cuerpoNotificacion = "Se ha creado la solicitud #" + solicitud1.getIdSolicitud() +
+                " para el equipo " + solicitud1.getEquipo().getNombre() +
+                ". Falla reportada: " + solicitud1.getDescripcionFalla();
+
+// Ejecutar notificación de correo
+        EmailService.enviarCorreo(
+                "nicolas.munoz.lopera@gmail.com",
+                "Notificación Ticket #" + solicitud1.getIdSolicitud(),
+                cuerpoNotificacion
+        );
     }
 }
