@@ -9,7 +9,14 @@
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
-        <!-- Jakarta Mail API (Envío de correos por SMTP) -->
+        <!-- Dependencia para crear la API REST -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>3.2.3</version>
+        </dependency>
+
+        <!-- Jakarta Mail (la que ya estás utilizando) -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
