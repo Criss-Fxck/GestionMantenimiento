@@ -9,8 +9,10 @@ import java.util.List;
 @Service
 public class SolicitudService {
     private final List<SolicitudMantenimiento> solicitudes = new ArrayList<>();
+    private final EmailService emailService;
 
-    public SolicitudService() {
+    public SolicitudService(EmailService emailService) {
+        this.emailService = emailService;
         UsuarioSolicitante solicitante = new UsuarioSolicitante("US-01", "Ana Gómez", "Contabilidad");
         Tecnico tecnico = new Tecnico("TEC-01", "Carlos Mendoza", "Sistemas");
         Equipo equipo = new Equipo("EQ-100", "Impresora Industrial", "Piso 2");
@@ -34,8 +36,8 @@ public class SolicitudService {
                 " para el equipo " + equipo.getNombre() +
                 ". Falla reportada: " + descripcion;
 
-        EmailService.enviarCorreo(
-                "nicolas.munoz.lopera@gmail.com",
+        emailService.enviarCorreo(
+                solicitante.getEmail(),
                 "Notificación Ticket #" + solicitud.getIdSolicitud(),
                 cuerpo
         );
