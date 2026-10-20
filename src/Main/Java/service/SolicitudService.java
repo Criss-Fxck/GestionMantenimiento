@@ -1,7 +1,6 @@
 package service;
 
 import domain.model.*;
-import infrastructure.email.EmailService;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,15 +31,7 @@ public class SolicitudService {
         solicitudes.add(solicitud);
 
         // Envío de correo electrónico
-        String cuerpo = "Se ha creado la solicitud #" + solicitud.getIdSolicitud() +
-                " para el equipo " + equipo.getNombre() +
-                ". Falla reportada: " + descripcion;
-
-        emailService.enviarCorreo(
-                solicitante.getEmail(),
-                "Notificación Ticket #" + solicitud.getIdSolicitud(),
-                cuerpo
-        );
+        emailService.notificarSolicitudCreada(solicitud);
 
         return solicitud;
     }
