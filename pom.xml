@@ -17,9 +17,14 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- Versiones de Herramientas de Calidad -->
+        <cucumber.version>7.18.0</cucumber.version>
+        <pitest.version>1.15.0</pitest.version>
+        <sonar.version>3.11.0.3922</sonar.version>
     </properties>
 
     <dependencies>
+        <!-- Dependencias existentes de tu proyecto -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -29,15 +34,77 @@
             <artifactId>jakarta.mail</artifactId>
             <version>2.0.1</version>
         </dependency>
+
+        <!-- JUnit 5 (Spring Boot Starter Test ya lo incluye) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Cucumber (Pruebas BDD / Aceptación) -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/Main/Java</sourceDirectory>
         <plugins>
+            <!-- Plugin existente de Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-        </plugins>
-    </build>
-</project>
+
+            <!-- Surefire (Para ejecutar pruebas) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <!-- PITest (Pruebas de Mutación) -->
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>${pitest.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <!-- Ajustado al groupId/paquete de tu proyecto -->
+                    <targetClasses>
+                        <param>com.mantenimiento.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.mantenimiento.*</param>
+                    </targetTests>
+                    <threads>4</threads>
+                    <outputFormats>
+                        <param>HTML</param>
+                    </outputFormats>
+                    <timestampedReports>false</timestampedReports>
+                </configuration>
+            </plugin>
+
+            <!-- SonarQube (Análisis Estático de Código) -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>

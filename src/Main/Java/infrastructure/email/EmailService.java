@@ -8,8 +8,8 @@ import java.util.Properties;
 public class EmailService {
 
     // Configuración del remitente (tu cuenta de Gmail)
-    private static final String REMITENTE = "gestion.mantenimiento67@gmail.com";
-    private static final String CLAVE_APLICACION = "myje xuze jhle gbgn"; // Las 16 letras de Google
+    private static final String REMITENTE = System.getenv("EMAIL_REMITENTE");
+    private static final String CLAVE_APLICACION = System.getenv("EMAIL_CLAVE_APP"); // Las 16 letras de Google
 
     public static void enviarCorreo(String emailDestino, String asunto, String cuerpoEmail) {
         // 1. Configuración de propiedades SMTP de Gmail
