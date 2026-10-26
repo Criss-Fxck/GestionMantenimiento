@@ -1,7 +1,6 @@
 package service;
 
 import domain.model.*;
-import service.EmailService; // Import correspondiente
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
