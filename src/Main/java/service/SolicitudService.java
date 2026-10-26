@@ -1,7 +1,7 @@
 package service;
 
 import domain.model.*;
-import infrastructure.email.EmailService;
+import service.EmailService; // Import correspondiente
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,16 +9,6 @@ import java.util.List;
 @Service
 public class SolicitudService {
     private final List<SolicitudMantenimiento> solicitudes = new ArrayList<>();
-
-    public SolicitudService() {
-        UsuarioSolicitante solicitante = new UsuarioSolicitante("US-01", "Ana Gómez", "Contabilidad");
-        Tecnico tecnico = new Tecnico("TEC-01", "Carlos Mendoza", "Sistemas");
-        Equipo equipo = new Equipo("EQ-100", "Impresora Industrial", "Piso 2");
-
-        SolicitudMantenimiento inicial = new SolicitudMantenimiento(1001, equipo, solicitante, "Falla en rodillos de impresión");
-        inicial.asignarTecnico(tecnico);
-        solicitudes.add(inicial);
-    }
 
     public List<SolicitudMantenimiento> obtenerTodas() {
         return solicitudes;
@@ -29,13 +19,13 @@ public class SolicitudService {
         SolicitudMantenimiento solicitud = new SolicitudMantenimiento(nuevoId, equipo, solicitante, descripcion);
         solicitudes.add(solicitud);
 
-        // Envío de correo electrónico
         String cuerpo = "Se ha creado la solicitud #" + solicitud.getIdSolicitud() +
                 " para el equipo " + equipo.getNombre() +
                 ". Falla reportada: " + descripcion;
 
+        // Envío dinámico al email del solicitante
         EmailService.enviarCorreo(
-                "elilustre22@gmail.com",
+                solicitante.getEmail(),
                 "Notificación Ticket #" + solicitud.getIdSolicitud(),
                 cuerpo
         );
