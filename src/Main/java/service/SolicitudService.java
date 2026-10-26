@@ -35,7 +35,7 @@ public class SolicitudService {
                 ". Falla reportada: " + descripcion;
 
         EmailService.enviarCorreo(
-                "nicolas.munoz.lopera@gmail.com",
+                "elilustre22@gmail.com",
                 "Notificación Ticket #" + solicitud.getIdSolicitud(),
                 cuerpo
         );
