@@ -63,7 +63,7 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/Main/Java</sourceDirectory>
+        <sourceDirectory>src/Main/java</sourceDirectory>
         <plugins>
             <!-- Plugin existente de Spring Boot -->
             <plugin>
