@@ -32,6 +32,11 @@ bin/
 # Maven target directory
 target/
 
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
 # IntelliJ IDEA project files
 .idea/
 *.iml

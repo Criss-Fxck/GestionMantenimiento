@@ -3,45 +3,52 @@ package service;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.util.Properties;
 
+@Service
 public class EmailService {
+    private final String remitente;
+    private final String claveAplicacion;
 
-    // Configuración del remitente (tu cuenta de Gmail)
-    private static final String REMITENTE = System.getenv("EMAIL_REMITENTE");
-    private static final String CLAVE_APLICACION = System.getenv("EMAIL_CLAVE_APP"); // Las 16 letras de Google
+    public EmailService(
+            @Value("${app.email.remitente}") String remitente,
+            @Value("${app.email.clave}") String claveAplicacion) {
+        this.remitente = remitente;
+        this.claveAplicacion = claveAplicacion;
+    }
 
-    public static void enviarCorreo(String emailDestino, String asunto, String cuerpoEmail) {
-        // 1. Configuración de propiedades SMTP de Gmail
+    public void enviarCorreo(String emailDestino, String asunto, String cuerpoEmail) {
+        if (remitente.isBlank() || claveAplicacion.isBlank()) {
+            throw new IllegalStateException(
+                    "Configura las variables de entorno MAIL_USERNAME y MAIL_PASSWORD para enviar correos.");
+        }
+
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
 
-        // 2. Autenticación
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(REMITENTE, CLAVE_APLICACION);
+                return new PasswordAuthentication(remitente, claveAplicacion);
             }
         });
 
         try {
-            // 3. Crear el mensaje
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(REMITENTE));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailDestino));
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(remitente));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailDestino, true));
             message.setSubject(asunto);
-            message.setText(cuerpoEmail);
-
-            // 4. Enviar
+            message.setText(cuerpoEmail, "UTF-8");
             Transport.send(message);
-            System.out.println("✅ Correo enviado exitosamente a: " + emailDestino);
-
         } catch (MessagingException e) {
-            System.err.println("❌ Error al enviar el correo: " + e.getMessage());
-            e.printStackTrace();
+            throw new IllegalStateException(
+                    "No fue posible enviar el correo. Verifica el destinatario y la configuración SMTP.", e);
         }
     }
 }
