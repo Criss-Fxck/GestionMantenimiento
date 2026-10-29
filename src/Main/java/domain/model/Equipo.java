@@ -22,3 +22,4 @@ public class Equipo {
     public String getNombre() { return nombre; }
     public String getUbicacion() { return ubicacion; }
 }
+
