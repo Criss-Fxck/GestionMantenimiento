@@ -76,3 +76,35 @@ Esta peticion crea la solicitud y envia una notificacion al correo indicado en `
 ```
 
 Las peticiones GET (`/api/equipos` y `/api/solicitudes`) no requieren body.
+
+ SPRINT 0 
+
+ cambios por matias: 
+ 
+### Validación de Asignación de Casos a Técnicos (Sobrecarga Laboral) 
+
+El sistema incluye una regla de negocio que limita a 5 el número de casos activos por técnico. Para validar esta funcionalidad a través de la API (estando en la rama `main` y con la aplicación en ejecución), sigue estos pasos desde Postman:
+
+1. **Crear un Técnico de Prueba:**
+   - **Método:** `POST`
+   - **Endpoint:** `http://localhost:8080/api/tecnicos`
+   - **Body (raw/JSON):**
+     ```json
+     {
+       "idUsuario": "T03",
+       "nombre": "Carlos Restrepo",
+       "departamento": "Mantenimiento",
+       "especialidad": "Sistemas"
+     }
+     ```
+2. **Asignar Casos (Acumular Carga):**
+   - **Método:** `POST`
+   - **Endpoint:** `http://localhost:8080/api/tecnicos/T03/asignar`
+   - **Acción:** Ejecuta esta petición 5 veces. Observarás que el sistema retorna un código `200 OK` en cada intento, indicando que la asignación fue exitosa.
+3. **Validar la Regla de Sobrecarga (El Bloqueo):**
+   - **Acción:** Ejecuta la misma petición de asignación por sexta vez.
+   - **Resultado Esperado:** El sistema debe retornar un código **HTTP 409 Conflict** con un cuerpo JSON indicando el error de sobrecarga laboral (Ej. `"mensaje": "El técnico Carlos Restrepo ya tiene el máximo de 5 casos asignados."`).
+4. **Verificar el Estado Final (Carga y Disponibilidad):**
+   - **Método:** `GET`
+   - **Endpoint:** `http://localhost:8080/api/tecnicos/carga`
+   - **Resultado Esperado:** En la lista, el técnico `T03` debe reflejar exactamente `5` casos activos, un estado de `OCUPADO_AL_LIMITE` y un `porcentajeOcupacion` del `100%`.
