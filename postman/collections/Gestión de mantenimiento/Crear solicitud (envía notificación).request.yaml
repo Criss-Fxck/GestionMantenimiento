@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/solicitudes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "equipoId": "EQ-101",
+      "equipoNombre": "Laptop Lenovo ThinkPad",
+      "equipoUbicacion": "Oficina 302",
+      "solicitanteId": "USR-001",
+      "solicitanteNombre": "Williams Balan",
+      "departamento": "Sistemas",
+      "email": "{{recipientEmail}}",
+      "descripcion": "Mantenimiento preventivo"
+    }
+order: 4000

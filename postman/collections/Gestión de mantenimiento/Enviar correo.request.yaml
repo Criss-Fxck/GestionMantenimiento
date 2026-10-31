@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/email/enviar"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "destinatario": "{{recipientEmail}}",
+      "asunto": "Prueba desde Postman",
+      "cuerpo": "Correo de prueba de la API de mantenimiento."
+    }
+order: 5000

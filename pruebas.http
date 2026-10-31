@@ -1,0 +1,22 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+###
+
+### Crear solicitud y enviar correo
+POST http://127.0.0.1:8080/api/solicitudes
+Content-Type: application/json
+
+{
+  "equipoId": "EQ-101",
+  "equipoNombre": "Laptop Lenovo ThinkPad",
+  "equipoUbicacion": "Oficina 302",
+  "solicitanteId": "USR-001",
+  "solicitanteNombre": "Williams Balan",
+  "departamento": "Sistemas",
+  "email": "elilustre22@gmail.com",
+  "descripcion": "Prueba de envío de correo para mantenimiento preventivo"
+}
+
+###

@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/equipos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idEquipo": "EQ-101",
+      "nombre": "Laptop Lenovo ThinkPad",
+      "ubicacion": "Oficina 302"
+    }
+order: 2000
