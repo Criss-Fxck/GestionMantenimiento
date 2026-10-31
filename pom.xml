@@ -16,14 +16,26 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <java.version>17</java.version>
+        <!-- Actualizado a JDK 21 -->
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Versiones de Herramientas de Calidad -->
         <cucumber.version>7.18.0</cucumber.version>
         <pitest.version>1.15.0</pitest.version>
+
+        <!-- Versión del Plugin de SonarQube estable -->
         <sonar.version>3.11.0.3922</sonar.version>
+
+        <!-- Configuración de SonarQube -->
+        <sonar.projectKey>demo-calidad</sonar.projectKey>
+        <sonar.projectName>Proyecto Demo Calidad</sonar.projectName>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+
+        <!-- Token configurado directamente -->
+        <sonar.token>sqa_9ebb1ac019ea7d4df6520bd286f3f12c345aff34</sonar.token>
+        <sonar.login>sqa_9ebb1ac019ea7d4df6520bd286f3f12c345aff34</sonar.login>
     </properties>
 
     <dependencies>
