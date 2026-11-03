@@ -19,4 +19,27 @@ Content-Type: application/json
   "descripcion": "Prueba de envío de correo para mantenimiento preventivo"
 }
 
+
+### Programar Revisión Preventiva (Crea la alerta)
+POST http://127.0.0.1:8080/api/revisiones
+Content-Type: application/json
+
+{
+  "idRevision": "REV-001",
+  "equipoId": "EQ-100",
+  "fechaProgramada": "2026-11-05",
+  "diasAvisoPrevio": 3,
+  "emailSupervisor": "elilustre22@gmail.com"
+}
+
+###
+
+### Reprogramar Revisión Preventiva (Recalcula la alerta)
+PUT http://127.0.0.1:8080/api/revisiones/REV-001/reprogramar
+Content-Type: application/json
+
+{
+  "nuevaFecha": "2026-12-10"
+}
+
 ###
