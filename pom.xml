@@ -107,14 +107,14 @@
                 </dependencies>
                 <configuration>
                     <targetClasses>
-                        <param>service.*</param>
-                        <param>domain.*</param>
-                        <param>infrastructure.*</param>
+                        <param>service..*</param>
+                        <param>domain..*</param>
+                        <param>infrastructure..*</param>
                     </targetClasses>
                     <targetTests>
-                        <param>service.*</param>
-                        <param>domain.*</param>
-                        <param>infrastructure.*</param>
+                        <param>service..*</param>
+                        <param>domain..*</param>
+                        <param>infrastructure..*</param>
                     </targetTests>
                     <threads>4</threads>
                     <outputFormats>
