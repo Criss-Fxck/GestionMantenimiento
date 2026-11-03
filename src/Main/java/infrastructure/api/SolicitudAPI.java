@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import service.SolicitudService;
 
 import java.util.List;
@@ -41,6 +42,13 @@ public class SolicitudAPI {
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitud);
     }
 
+    @PostMapping("/{id}/cerrar")
+    public ResponseEntity<SolicitudMantenimiento> cerrarSolicitud(
+            @PathVariable int id, @RequestBody CerrarSolicitudRequest request) {
+        return ResponseEntity.ok(solicitudService.cerrarSolicitud(
+                id, request.diagnostico(), request.solucion()));
+    }
+
     public record CrearSolicitudRequest(
             String equipoId,
             String equipoNombre,
@@ -51,4 +59,6 @@ public class SolicitudAPI {
             String email,
             String descripcion
     ) {}
+
+    public record CerrarSolicitudRequest(String diagnostico, String solucion) {}
 }
