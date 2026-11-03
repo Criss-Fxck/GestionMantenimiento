@@ -1,4 +1,4 @@
-﻿package domain.model;
+package domain.model;
 
 import domain.exeptions.SobrecargaLaboralException;
 import org.junit.jupiter.api.BeforeEach;
