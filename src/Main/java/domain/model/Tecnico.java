@@ -21,6 +21,12 @@ public class Tecnico extends Usuario {
         this.casosActivos++;
     }
 
+    public void cerrarCaso() {
+        if (casosActivos > 0) {
+            casosActivos--;
+        }
+    }
+
     // Lógica de negocio: Calcular disponibilidad dinámica
     public EstadoDisponibilidad getDisponibilidad() {
         if (casosActivos == 0) return EstadoDisponibilidad.LIBRE;
