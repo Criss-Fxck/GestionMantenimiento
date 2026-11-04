@@ -1,8 +1,10 @@
 package service;
 
+import domain.exeptions.SolicitudInvalidaException;
 import domain.model.*;
-import org.springframework.stereotype.Service;
 import domain.repository.TecnicoRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +24,22 @@ public class SolicitudService {
     }
 
     public synchronized SolicitudMantenimiento crearSolicitud(Equipo equipo, UsuarioSolicitante solicitante, String descripcion) {
+        // GUARDIÁN 1: Validación de Equipo obligatorio
+        if (equipo == null || equipo.getIdEquipo() == null || equipo.getIdEquipo().isBlank()) {
+            throw new SolicitudInvalidaException("Debe seleccionar un equipo válido para formalizar la solicitud.");
+        }
+
+        // GUARDIÁN 2: Validación de Descripción obligatoria
+        if (descripcion == null || descripcion.isBlank()) {
+            throw new SolicitudInvalidaException("Debe registrar la descripción detallada de la falla.");
+        }
+
+        // Búsqueda de técnico disponible
         Tecnico tecnico = tecnicoRepository.obtenerTodos().stream()
                 .filter(t -> t.getCasosActivos() < 5)
                 .min(java.util.Comparator.comparingInt(Tecnico::getCasosActivos))
                 .orElseThrow(() -> new IllegalStateException("No hay técnicos disponibles: todos alcanzaron el máximo de 5 casos activos."));
+
         int nuevoId = 1000 + solicitudes.size() + 1;
         SolicitudMantenimiento solicitud = new SolicitudMantenimiento(nuevoId, equipo, solicitante, descripcion);
 
@@ -52,12 +66,14 @@ public class SolicitudService {
                 .filter(s -> s.getIdSolicitud() == id)
                 .findFirst()
                 .orElseThrow(() -> new java.util.NoSuchElementException("No existe la solicitud " + id + "."));
+
         if (diagnostico == null || diagnostico.isBlank() || solucion == null || solucion.isBlank()) {
             throw new IllegalArgumentException("Debe escribir el diagnóstico y la solución para cerrar la solicitud.");
         }
         if ("Cerrado".equals(solicitud.getEstado())) {
             throw new IllegalStateException("La solicitud ya está cerrada.");
         }
+
         emailService.enviarCorreo(
                 solicitud.getSolicitante().getEmail(),
                 "Solicitud #" + id + " cerrada",
