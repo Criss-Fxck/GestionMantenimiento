@@ -108,14 +108,13 @@
                 </dependencies>
                 <configuration>
                     <targetClasses>
-                        <param>service..*</param>
-                        <param>domain..*</param>
-                        <param>infrastructure..*</param>
+                        <param>domain.*</param>
+                        <param>service.*</param>
+                        <param>infrastructure.*</param>
                     </targetClasses>
                     <targetTests>
-                        <param>service..*</param>
-                        <param>domain..*</param>
-                        <param>infrastructure..*</param>
+                        <param>domain.*</param>
+                        <param>service.*</param>
                     </targetTests>
                     <threads>4</threads>
                     <outputFormats>
@@ -124,7 +123,6 @@
                     <timestampedReports>false</timestampedReports>
                 </configuration>
             </plugin>
-
             <!-- SonarQube -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
