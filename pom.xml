@@ -80,6 +80,7 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>src/Main/java</sourceDirectory>
         <plugins>
             <!-- Spring Boot Maven Plugin -->
             <plugin>
