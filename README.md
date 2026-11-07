@@ -1,7 +1,23 @@
 # Gestión de mantenimiento
 
 API Spring Boot para registrar equipos y solicitudes de mantenimiento y enviar notificaciones por correo mediante Gmail SMTP.
+## Solución de Problemas (Troubleshooting)
 
+
+### Error de Byte Buddy / Mockito al ejecutar pruebas unitarias
+**Problema:** Al correr las pruebas con JUnit o Pitest, la consola arroja un error indicando que la versión de Java no es compatible, por ejemplo:
+`java.lang.IllegalArgumentException: Java 27 (71) is not supported by the current version of Byte Buddy...`
+
+**Causa:** IntelliJ IDEA está intentando compilar y ejecutar el proyecto utilizando un JDK más reciente o experimental (como Java 27) en lugar del entorno estable configurado en el `pom.xml` (Java 21). Esto rompe la compatibilidad con Mockito.
+
+**Solución (Project Structure):**
+1. En IntelliJ IDEA, abre **File > Project Structure...** (o presiona `Ctrl + Alt + Shift + S`).
+2. En el menú izquierdo, selecciona **Project**.
+3. En el campo **SDK**, despliega el menú y selecciona una versión de **Java 21** (si no tienes una, selecciona *Download JDK...* y descarga la versión 21).
+4. En el campo **Language level**, selecciona `21 - No new language features`.
+5. Haz clic en **Apply** y luego en **OK**.
+6. *(Opcional)* Ve a **File > Settings > Build, Execution, Deployment > Build Tools > Maven > Runner** y asegúrate de que **JRE** esté configurado en `Use Project JDK` o directamente en `21`.
+7. Vuelve a ejecutar las pruebas.
 ## Configurar el correo
 
 El backend lee estas variables de entorno al iniciar:
