@@ -23,7 +23,8 @@ public class RevisionService {
     }
 
     // CRITERIO 1: Motor de alertas (Se ejecuta todos los días a las 8:00 AM)
-    @Scheduled(cron = "0 0 8 * * ?")
+    // @Scheduled(cron = "0 0 8 * * ?")
+    @Scheduled(fixedRate = 10000)
     public void procesarAlertasPreventivas() {
         LocalDate hoy = LocalDate.now();
 

@@ -1,8 +1,15 @@
 package domain.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 
 public class SolicitudMantenimiento {
+
+    // 1. Declaración del Logger
+    private static final Logger logger = LoggerFactory.getLogger(SolicitudMantenimiento.class);
+
     private int idSolicitud;
     private String descripcionFalla;
     private String estado;
@@ -49,13 +56,14 @@ public class SolicitudMantenimiento {
     }
 
     public void mostrarDetalle() {
-        System.out.println("=== SOLICITUD #" + idSolicitud + " ===");
-        System.out.println("Estado: " + estado);
-        System.out.println("domain.model.Equipo: " + (equipo != null ? equipo.getNombre() : "N/A"));
-        System.out.println("Solicitante: " + (solicitante != null ? solicitante.getNombre() : "N/A"));
-        System.out.println("Descripción: " + descripcionFalla);
-        System.out.println("Técnico Asignado: " + (tecnicoAsignado != null ? tecnicoAsignado.getNombre() : "Sin asignar"));
-        System.out.println("----------------------------");
+        // 2. Uso de logger.info reemplazando las concatenaciones (+) por llaves ({})
+        logger.info("=== SOLICITUD #{} ===", idSolicitud);
+        logger.info("Estado: {}", estado);
+        logger.info("domain.model.Equipo: {}", (equipo != null ? equipo.getNombre() : "N/A"));
+        logger.info("Solicitante: {}", (solicitante != null ? solicitante.getNombre() : "N/A"));
+        logger.info("Descripción: {}", descripcionFalla);
+        logger.info("Técnico Asignado: {}", (tecnicoAsignado != null ? tecnicoAsignado.getNombre() : "Sin asignar"));
+        logger.info("----------------------------");
     }
 
     public int getIdSolicitud() { return idSolicitud; }

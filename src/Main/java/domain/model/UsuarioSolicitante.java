@@ -1,6 +1,12 @@
 package domain.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UsuarioSolicitante extends Usuario {
+
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioSolicitante.class);
+
     private String email;
 
     public UsuarioSolicitante(String idUsuario, String nombre, String departamento) {
@@ -15,11 +21,11 @@ public class UsuarioSolicitante extends Usuario {
 
     @Override
     public void mostrarInformacion() {
-        System.out.println("=== SOLICITANTE ===");
-        System.out.println("ID: " + idUsuario);
-        System.out.println("Nombre: " + nombre);
-        System.out.println("Departamento: " + departamento);
-        System.out.println("Email: " + email);
+        logger.info("=== SOLICITANTE ===");
+        logger.info("ID: {}", idUsuario);
+        logger.info("Nombre: {}", nombre);
+        logger.info("Departamento: {}", departamento);
+        logger.info("Email: {}", email);
     }
 
     public String getEmail() { return email; }

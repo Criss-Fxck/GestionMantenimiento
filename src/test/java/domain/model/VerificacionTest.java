@@ -1,16 +1,14 @@
-package service;
+package domain.model;
 
 import domain.exeptions.SolicitudInvalidaException;
-import domain.model.Equipo;
-import domain.model.SolicitudMantenimiento;
-import domain.model.Tecnico;
-import domain.model.UsuarioSolicitante;
 import domain.repository.TecnicoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import service.EmailService;
+import service.SolicitudService;
 
 import java.util.List;
 
@@ -18,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SolicitudServiceTest {
+class VerificacionTest {
 
     @Mock
     private EmailService emailService;

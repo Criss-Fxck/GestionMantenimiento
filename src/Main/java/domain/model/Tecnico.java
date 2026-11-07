@@ -1,8 +1,13 @@
 package domain.model;
 
 import domain.exeptions.SobrecargaLaboralException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Tecnico extends Usuario {
+
+    private static final Logger logger = LoggerFactory.getLogger(Tecnico.class);
+
     private String especialidad;
     private int casosActivos;
     private static final int MAX_CASOS = 5;
@@ -36,11 +41,11 @@ public class Tecnico extends Usuario {
 
     @Override
     public void mostrarInformacion() {
-        System.out.println("=== TÉCNICO ===");
-        System.out.println("ID: " + idUsuario);
-        System.out.println("Nombre: " + nombre);
-        System.out.println("Especialidad: " + especialidad);
-        System.out.println("Casos Activos: " + casosActivos);
+        logger.info("=== TÉCNICO ===");
+        logger.info("ID: {}", idUsuario);
+        logger.info("Nombre: {}", nombre);
+        logger.info("Especialidad: {}", especialidad);
+        logger.info("Casos Activos: {}", casosActivos);
     }
 
     public String getEspecialidad() { return especialidad; }

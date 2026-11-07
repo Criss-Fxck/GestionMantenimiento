@@ -1,6 +1,12 @@
 package domain.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Equipo {
+
+    private static final Logger logger = LoggerFactory.getLogger(Equipo.class);
+
     private String idEquipo;
     private String nombre;
     private String ubicacion;
@@ -12,10 +18,10 @@ public class Equipo {
     }
 
     public void mostrarInformacion() {
-        System.out.println("=== DATOS DEL EQUIPO ===");
-        System.out.println("ID domain.model.Equipo: " + idEquipo);
-        System.out.println("Nombre: " + nombre);
-        System.out.println("Ubicación: " + ubicacion);
+        logger.info("=== DATOS DEL EQUIPO ===");
+        logger.info("ID domain.model.Equipo: {}", idEquipo);
+        logger.info("Nombre: {}", nombre);
+        logger.info("Ubicación: {}", ubicacion);
     }
 
     public String getIdEquipo() { return idEquipo; }
