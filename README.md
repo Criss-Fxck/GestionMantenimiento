@@ -160,6 +160,22 @@ El frontend estático y el backend son servicios independientes; Aiven sigue alo
 
 No se necesita publicar un archivo `render.yaml`: ambos servicios se pueden configurar desde el panel de Render. El backend requiere acceso de red a Aiven y a la API HTTPS de Brevo.
 
+### Pendiente para completar y verificar el despliegue
+
+El despliegue en Render todavía debe realizarse desde las cuentas del proyecto. La compilación local y las pruebas automatizadas no sustituyen la verificación de los servicios publicados. Sigue esta lista:
+
+- [ ] Crear en Render el **Web Service** del backend usando el `Dockerfile` de la raíz.
+- [ ] Configurar en Render las variables de conexión a Aiven (`SPRING_DATASOURCE_*`) y correo (`BREVO_*`). No pegarlas en Git ni en el frontend.
+- [ ] Crear en Render el **Static Site** con raíz `frontend-app`, comando `npm ci && npm run build` y directorio publicado `dist`.
+- [ ] Configurar `VITE_API_BASE_URL` con la URL HTTPS del backend y `CORS_ALLOWED_ORIGINS` con el origen HTTPS exacto del frontend; volver a desplegar ambos servicios si se cambia una URL.
+- [ ] Revisar los logs del backend y confirmar que inicia, conecta con Aiven y Flyway aplica o valida las migraciones sin errores.
+- [ ] Abrir el frontend publicado y confirmar que las peticiones a la API no fallan por URL o CORS.
+- [ ] Hacer una prueba controlada de punta a punta en producción: registrar un equipo, crear una solicitud y comprobar la asignación y el correo, cerrar la solicitud y confirmar que se libera la carga del técnico.
+- [ ] Probar también las funciones publicadas de técnicos, revisiones preventivas, reprogramación, reporte semanal y correo de prueba; revisar las respuestas de error para datos inválidos y códigos duplicados.
+- [ ] Confirmar el comportamiento del proceso programado de revisiones con el servicio backend publicado y activo, y verificar la recepción del correo de alerta.
+
+Las pruebas de producción pueden crear datos persistentes en Aiven y enviar correos reales. Usa datos identificables de prueba y destinatarios controlados; al terminar, revisa la base y conserva o elimina esos datos manualmente según lo que necesite el equipo. La API no ofrece endpoints de borrado.
+
 ## Seguridad de configuración
 
 - No subas `.env`, `.env.local`, contraseñas JDBC, claves de Brevo ni credenciales de Aiven.
