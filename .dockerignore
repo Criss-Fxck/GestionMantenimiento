@@ -1,0 +1,10 @@
+.git
+.idea
+.vscode
+target
+frontend-app
+apache-maven-*
+sonarqube-laboratorio
+postman
+.postman
+desktop.ini

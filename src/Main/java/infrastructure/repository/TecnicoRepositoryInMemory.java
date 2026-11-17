@@ -2,12 +2,14 @@ package infrastructure.repository;
 
 import domain.model.Tecnico;
 import domain.repository.TecnicoRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@Profile("memoria")
 public class TecnicoRepositoryInMemory implements TecnicoRepository {
 
     private final Map<String, Tecnico> baseDeDatos = new ConcurrentHashMap<>();

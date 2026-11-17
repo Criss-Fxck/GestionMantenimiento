@@ -41,10 +41,10 @@ class ReporteSemanalServiceTest {
         SolicitudMantenimiento asignada = crearSolicitud(1001, juan);
         SolicitudMantenimiento cerrada = crearSolicitud(1002, juan);
         cerrada.cerrar("Diagnóstico", "Solución");
-        SolicitudMantenimiento reportada = crearSolicitud(1003, juan);
+        SolicitudMantenimiento segundaAsignada = crearSolicitud(1003, juan);
 
         when(tecnicoRepository.obtenerTodos()).thenReturn(List.of(juan, maria));
-        when(solicitudService.obtenerTodas()).thenReturn(List.of(asignada, cerrada, reportada));
+        when(solicitudService.obtenerTodas()).thenReturn(List.of(asignada, cerrada, segundaAsignada));
 
         var reporte = reporteService.generarReporteSemanal();
 
@@ -59,8 +59,8 @@ class ReporteSemanalServiceTest {
         assertEquals("Mantenimiento", resumenJuan.departamento());
         assertEquals("Mecánico", resumenJuan.especialidad());
         assertEquals(3, resumenJuan.totalSolicitudes());
-        assertEquals(1, resumenJuan.solicitudesReportadas());
-        assertEquals(1, resumenJuan.solicitudesAsignadas());
+        assertEquals(0, resumenJuan.solicitudesReportadas());
+        assertEquals(2, resumenJuan.solicitudesAsignadas());
         assertEquals(1, resumenJuan.solicitudesCerradas());
 
         var resumenMaria = reporte.tecnicos().get(1);

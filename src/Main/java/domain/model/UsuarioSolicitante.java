@@ -1,13 +1,23 @@
 package domain.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Entity
+@Table(name = "solicitantes")
 public class UsuarioSolicitante extends Usuario {
 
     private static final Logger logger = LoggerFactory.getLogger(UsuarioSolicitante.class);
 
+    @Column(name = "email", length = 254, nullable = false)
     private String email;
+
+    protected UsuarioSolicitante() {
+        super();
+    }
 
     public UsuarioSolicitante(String idUsuario, String nombre, String departamento) {
         super(idUsuario, nombre, departamento);

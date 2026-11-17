@@ -2,9 +2,13 @@ package service;
 
 import domain.exeptions.SolicitudInvalidaException;
 import domain.model.*;
+import domain.repository.EquipoRepository;
+import domain.repository.SolicitanteRepository;
+import domain.repository.SolicitudRepository;
 import domain.repository.TecnicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,22 +21,38 @@ public class SolicitudService {
     private final EmailService emailService;
     private final TecnicoRepository tecnicoRepository;
     private final EquipoService equipoService;
+    private final EquipoRepository equipoRepository;
+    private final SolicitanteRepository solicitanteRepository;
+    private final SolicitudRepository solicitudRepository;
 
     public SolicitudService(EmailService emailService, TecnicoRepository tecnicoRepository) {
-        this(emailService, tecnicoRepository, null);
+        this(emailService, tecnicoRepository, null, null, null, null);
     }
 
     @Autowired
-    public SolicitudService(EmailService emailService, TecnicoRepository tecnicoRepository, EquipoService equipoService) {
+    public SolicitudService(
+            EmailService emailService,
+            TecnicoRepository tecnicoRepository,
+            EquipoService equipoService,
+            EquipoRepository equipoRepository,
+            SolicitanteRepository solicitanteRepository,
+            SolicitudRepository solicitudRepository) {
         this.emailService = emailService;
         this.tecnicoRepository = tecnicoRepository;
         this.equipoService = equipoService;
+        this.equipoRepository = equipoRepository;
+        this.solicitanteRepository = solicitanteRepository;
+        this.solicitudRepository = solicitudRepository;
     }
 
     public synchronized List<SolicitudMantenimiento> obtenerTodas() {
+        if (solicitudRepository != null) {
+            return List.copyOf(solicitudRepository.obtenerTodas());
+        }
         return List.copyOf(solicitudes);
     }
 
+    @Transactional
     public synchronized SolicitudMantenimiento crearSolicitud(Equipo equipo, UsuarioSolicitante solicitante, String descripcion) {
         // GUARDIÁN 1: Validación de Equipo obligatorio
         if (equipo == null || equipo.getIdEquipo() == null || equipo.getIdEquipo().isBlank()) {
@@ -40,9 +60,15 @@ public class SolicitudService {
         }
 
         // Sincroniza con el equipo registrado en EquipoService para conservar historial y estado real
-        Equipo equipoGestionado = (equipoService != null)
-                ? equipoService.obtenerORegistrarEquipo(equipo.getIdEquipo(), equipo.getNombre(), equipo.getUbicacion())
-                : equipo;
+        Equipo equipoGestionado;
+        if (equipoRepository != null) {
+            equipoGestionado = equipoRepository.buscarPorId(equipo.getIdEquipo())
+                    .orElseThrow(() -> new NoSuchElementException("No existe el equipo " + equipo.getIdEquipo() + "."));
+        } else {
+            equipoGestionado = (equipoService != null)
+                    ? equipoService.obtenerORegistrarEquipo(equipo.getIdEquipo(), equipo.getNombre(), equipo.getUbicacion())
+                    : equipo;
+        }
 
         // GUARDIÁN 2: Validación de estado del equipo
         if (equipoGestionado.isFueraDeServicio()) {
@@ -60,8 +86,17 @@ public class SolicitudService {
                 .min(Comparator.comparingInt(Tecnico::getCasosActivos))
                 .orElseThrow(() -> new IllegalStateException("No hay técnicos disponibles: todos alcanzaron el máximo de 5 casos activos."));
 
-        int nuevoId = 1000 + solicitudes.size() + 1;
-        SolicitudMantenimiento solicitud = new SolicitudMantenimiento(nuevoId, equipoGestionado, solicitante, descripcion);
+        UsuarioSolicitante solicitanteGestionado = solicitante;
+        SolicitudMantenimiento solicitud;
+        if (solicitudRepository != null) {
+            solicitanteGestionado = solicitanteRepository.buscarPorId(solicitante.getIdUsuario())
+                    .orElseGet(() -> solicitanteRepository.guardar(solicitante));
+            solicitud = solicitudRepository.guardar(
+                    new SolicitudMantenimiento(equipoGestionado, solicitanteGestionado, descripcion));
+        } else {
+            int nuevoId = 1000 + solicitudes.size() + 1;
+            solicitud = new SolicitudMantenimiento(nuevoId, equipoGestionado, solicitanteGestionado, descripcion);
+        }
 
         String cuerpo = "La solicitud #" + solicitud.getIdSolicitud() +
                 " cambió al estado ASIGNADO. Técnico: " + tecnico.getNombre() +
@@ -69,7 +104,7 @@ public class SolicitudService {
                 ". Falla reportada: " + descripcion;
 
         emailService.enviarCorreo(
-                solicitante.getEmail(),
+                solicitanteGestionado.getEmail(),
                 "Solicitud #" + solicitud.getIdSolicitud() + " asignada",
                 cuerpo
         );
@@ -77,15 +112,23 @@ public class SolicitudService {
         tecnico.asignarNuevoCaso();
         solicitud.asignarTecnico(tecnico);
         tecnicoRepository.guardar(tecnico);
-        solicitudes.add(solicitud);
+        if (solicitudRepository != null) {
+            solicitudRepository.guardar(solicitud);
+        } else {
+            solicitudes.add(solicitud);
+        }
         return solicitud;
     }
 
+    @Transactional
     public synchronized SolicitudMantenimiento cerrarSolicitud(int id, String diagnostico, String solucion) {
-        SolicitudMantenimiento solicitud = solicitudes.stream()
-                .filter(s -> s.getIdSolicitud() == id)
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("No existe la solicitud " + id + "."));
+        SolicitudMantenimiento solicitud = (solicitudRepository != null)
+                ? solicitudRepository.buscarPorId(id)
+                    .orElseThrow(() -> new NoSuchElementException("No existe la solicitud " + id + "."))
+                : solicitudes.stream()
+                    .filter(s -> s.getIdSolicitud() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchElementException("No existe la solicitud " + id + "."));
 
         if (diagnostico == null || diagnostico.isBlank() || solucion == null || solucion.isBlank()) {
             throw new IllegalArgumentException("Debe escribir el diagnóstico y la solución para cerrar la solicitud.");
@@ -103,6 +146,13 @@ public class SolicitudService {
                         "Solución: " + solucion.trim()
         );
         solicitud.cerrar(diagnostico, solucion);
+        if (solicitudRepository != null) {
+            if (solicitud.getTecnicoAsignado() != null) {
+                tecnicoRepository.guardar(solicitud.getTecnicoAsignado());
+            }
+            equipoRepository.guardar(solicitud.getEquipo());
+            solicitudRepository.guardar(solicitud);
+        }
         return solicitud;
     }
 }

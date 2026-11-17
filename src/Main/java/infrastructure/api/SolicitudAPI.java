@@ -11,6 +11,7 @@ import service.EquipoService;
 import service.SolicitudService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/solicitudes")
@@ -36,9 +37,14 @@ public class SolicitudAPI {
     @PostMapping
     public ResponseEntity<SolicitudMantenimiento> registrarSolicitud(
             @RequestBody CrearSolicitudRequest request) {
-        Equipo equipo = (equipoService != null && request.equipoId() != null && !request.equipoId().isBlank())
-                ? equipoService.obtenerORegistrarEquipo(request.equipoId(), request.equipoNombre(), request.equipoUbicacion())
-                : new Equipo(request.equipoId(), request.equipoNombre(), request.equipoUbicacion());
+        Equipo equipo;
+        if (equipoService != null && request.equipoId() != null && !request.equipoId().isBlank()) {
+            equipo = equipoService.buscarPorId(request.equipoId())
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "No existe el equipo " + request.equipoId() + "."));
+        } else {
+            equipo = new Equipo(request.equipoId(), request.equipoNombre(), request.equipoUbicacion());
+        }
 
         UsuarioSolicitante solicitante = new UsuarioSolicitante(
                 request.solicitanteId(), request.solicitanteNombre(),
