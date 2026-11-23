@@ -4,6 +4,7 @@ import domain.exeptions.SobrecargaLaboralException;
 import domain.exeptions.SolicitudInvalidaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -40,6 +41,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<Object> handleNoEncontrado(NoSuchElementException ex) {
         return respuesta(HttpStatus.NOT_FOUND, "No encontrado", ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleConflictoDePersistencia(DataIntegrityViolationException ex) {
+        return respuesta(HttpStatus.CONFLICT, "Conflicto de persistencia",
+                "La operación viola una restricción de datos o existe un registro con el mismo identificador.");
     }
 
     private ResponseEntity<Object> respuesta(HttpStatus status, String error, String mensaje) {

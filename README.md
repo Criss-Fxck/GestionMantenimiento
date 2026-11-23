@@ -1,246 +1,183 @@
-# Gestión de mantenimiento
+# Gestión de Mantenimiento
 
-API Spring Boot para registrar equipos y solicitudes de mantenimiento y enviar notificaciones por correo mediante Gmail SMTP.
-## Solución de Problemas (Troubleshooting)
+Aplicación académica para registrar equipos, gestionar solicitudes de mantenimiento, asignar técnicos, programar revisiones preventivas y enviar reportes por correo.
 
+## Componentes
 
-### Error de Byte Buddy / Mockito al ejecutar pruebas unitarias
-**Problema:** Al correr las pruebas con JUnit o Pitest, la consola arroja un error indicando que la versión de Java no es compatible, por ejemplo:
-`java.lang.IllegalArgumentException: Java 27 (71) is not supported by the current version of Byte Buddy...`
+| Componente | Tecnología | Ubicación |
+| --- | --- | --- |
+| Backend REST | Java 21, Spring Boot 3.2.3, Maven | `src/Main/java` |
+| Frontend | React y Vite | `frontend-app/` |
+| Base de datos | MySQL en Aiven | Se inicializa y actualiza con Flyway |
+| Correo | API HTTP de Brevo | Configuración por variables de entorno |
 
-**Causa:** IntelliJ IDEA está intentando compilar y ejecutar el proyecto utilizando un JDK más reciente o experimental (como Java 27) en lugar del entorno estable configurado en el `pom.xml` (Java 21). Esto rompe la compatibilidad con Mockito.
+El frontend y el backend son proyectos separados y se comunican por HTTP. La base de datos y el servicio de correo no guardan sus credenciales en el repositorio.
 
-**Solución (Project Structure):**
-1. En IntelliJ IDEA, abre **File > Project Structure...** (o presiona `Ctrl + Alt + Shift + S`).
-2. En el menú izquierdo, selecciona **Project**.
-3. En el campo **SDK**, despliega el menú y selecciona una versión de **Java 21** (si no tienes una, selecciona *Download JDK...* y descarga la versión 21).
-4. En el campo **Language level**, selecciona `21 - No new language features`.
-5. Haz clic en **Apply** y luego en **OK**.
-6. *(Opcional)* Ve a **File > Settings > Build, Execution, Deployment > Build Tools > Maven > Runner** y asegúrate de que **JRE** esté configurado en `Use Project JDK` o directamente en `21`.
-7. Vuelve a ejecutar las pruebas.
-## Configurar el correo
+## Requisitos
 
-El backend lee estas variables de entorno al iniciar:
+- JDK 21.
+- Maven 3.9 o posterior (o el wrapper de Maven si se agrega al proyecto).
+- Node.js y npm, compatibles con las versiones declaradas en `frontend-app/package-lock.json`.
+- Una base MySQL accesible desde el backend. El proyecto está configurado para Aiven y exige SSL en la conexión de producción.
+- Una cuenta de Brevo y un remitente verificado, si se van a probar las notificaciones.
+- Docker Desktop para ejecutar las pruebas de integración que usan Testcontainers.
 
-- `MAIL_USERNAME`: dirección Gmail remitente.
-- `MAIL_PASSWORD`: contraseña de aplicación de Google (no la contraseña normal de la cuenta).
+## Variables de entorno
 
-En IntelliJ IDEA, abre **Run > Edit Configurations...**, selecciona la configuración de `mantenimiento.main` y agrega ambas variables en **Environment variables** con el formato `MAIL_USERNAME=correo@gmail.com;MAIL_PASSWORD=contraseña_de_aplicación`. Guarda la configuración y reinicia la aplicación.
+Configura las variables en la ejecución del backend de IntelliJ IDEA o en el panel de variables del servicio de despliegue. No publiques los valores, no los añadas al README ni los guardes en Git.
 
-También puedes iniciarla desde PowerShell configurando las variables solo para esa ventana:
+### Backend
+
+| Variable | Obligatoria | Uso / formato |
+| --- | --- | --- |
+| `SPRING_DATASOURCE_URL` | Sí | URL JDBC MySQL de Aiven: `jdbc:mysql://<host>:<puerto>/<base>?ssl-mode=REQUIRED`. Usa el host, puerto y nombre de base que muestra Aiven. |
+| `SPRING_DATASOURCE_USERNAME` | Sí | Usuario de MySQL asignado por Aiven. |
+| `SPRING_DATASOURCE_PASSWORD` | Sí | Contraseña de MySQL asignada por Aiven. |
+| `BREVO_API_KEY` | Sí para correo | Clave de API transaccional de Brevo. Mantén este valor privado. |
+| `BREVO_SENDER_EMAIL` | Sí para correo | Dirección del remitente verificado en Brevo. |
+| `BREVO_SENDER_NAME` | No | Nombre visible del remitente. Por defecto: `Gestión de Mantenimiento`. |
+| `BREVO_API_URL` | No | URL de envío de Brevo. Por defecto: `https://api.brevo.com/v3/smtp/email`. |
+| `CORS_ALLOWED_ORIGINS` | No | Orígenes web permitidos, separados por coma. Por defecto local: `http://localhost:5173`. En despliegue, configura el dominio HTTPS del frontend. |
+| `PORT` | No | Puerto HTTP. Por defecto local: `8080`; Render define el puerto del servicio. |
+
+Para obtener la URL JDBC, toma el host, puerto, base de datos, usuario y contraseña del panel de Aiven. La URL debe comenzar con `jdbc:mysql://` y llevar `?ssl-mode=REQUIRED` para la conexión TLS de Aiven. No copies aquí la URI completa con credenciales.
+
+### Frontend
+
+| Variable | Obligatoria | Uso |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | No | URL raíz del backend, sin `/` final. Por defecto local: `http://localhost:8080`. En producción usa la URL HTTPS pública del backend. |
+
+Para desarrollo local, el archivo de ejemplo está en `frontend-app/.env.example`. Si necesitas cambiar la URL, crea `frontend-app/.env.local` a partir del ejemplo. Los archivos `.env.local` están ignorados por Git. Vite incorpora `VITE_API_BASE_URL` durante la compilación; si cambia en producción, vuelve a compilar y desplegar el frontend.
+
+## Ejecución local
+
+### 1. Configurar e iniciar el backend
+
+1. Abre el repositorio raíz en IntelliJ IDEA.
+2. Configura JDK 21 como SDK del proyecto y como JDK de ejecución.
+3. En **Run/Debug Configurations**, selecciona la clase principal `mantenimiento.main`.
+4. En **Environment variables**, configura las variables del backend de la tabla anterior. Para trabajar sin correo, las variables `BREVO_*` solo son necesarias al usar una función que envía mensajes.
+5. Ejecuta `mantenimiento.main`. Flyway crea/aplica las migraciones al iniciar Spring Boot y la API queda disponible en `http://localhost:8080` (salvo que definas `PORT`).
+
+El directorio Maven de fuentes es intencionalmente `src/Main/java` (con `M` mayúscula); no lo renombres. Hibernate está configurado para validar el esquema, mientras Flyway administra las migraciones.
+
+### 2. Iniciar el frontend
+
+Desde una terminal en la raíz del repositorio:
 
 ```powershell
-$env:MAIL_USERNAME = "correo@gmail.com"
-$env:MAIL_PASSWORD = "contraseña_de_aplicación"
-mvn spring-boot:run
+cd frontend-app
+npm ci
+npm run dev
 ```
 
-No guardes esos valores en `application.properties`, archivos de Postman, ni en el repositorio. Si la credencial anterior llegó a estar en un commit o se compartió, revócala en Google y genera una nueva; borrar el valor del archivo actual no lo elimina del historial de Git.
+Abre `http://localhost:5173`. El frontend usa `http://localhost:8080` por defecto y envía solicitudes a la API Spring Boot.
 
-## Usar con Postman
+### 3. Comprobar la conexión
 
-Importa `postman/collections/GestionMantenimiento.postman_collection.json` y `postman/environments/Local.postman_environment.json`. Selecciona el entorno **Local** y ejecuta las peticiones. El correo y su contraseña se configuran en el entorno de ejecución del backend; no son variables de Postman.
+Con ambos procesos iniciados, prueba `http://localhost:8080/api/equipos` o usa el módulo **Equipos** del frontend. La base inicial incluye los equipos `EQ-100` y `EQ-200`, y los técnicos `T01` y `T02`.
 
-La API escucha por defecto en `http://localhost:8080`:
+## Esquema y migraciones
 
-- `GET /api/equipos`
-- `POST /api/equipos`
-- `GET /api/solicitudes`
-- `POST /api/solicitudes` (crea la solicitud y envía su notificación)
-- `POST /api/email/enviar`
+Flyway mantiene los scripts en `src/Main/resources/db/migration/` y los aplica automáticamente al arrancar el backend:
 
-Si no se configuran las variables de correo, la aplicación puede iniciar, pero los endpoints que envían correo devolverán un error en lugar de informar un envío exitoso.
-### Cuerpos para las peticiones POST
+| Migración | Contenido |
+| --- | --- |
+| `V1__crear_tablas.sql` | Crea equipos, técnicos, solicitantes, solicitudes y revisiones preventivas; define llaves foráneas, índices y restricciones. La secuencia de solicitudes inicia en 1001. |
+| `V2__datos_iniciales.sql` | Inserta los equipos `EQ-100` y `EQ-200` y los técnicos `T01` y `T02`. |
+| `V3__agregar_marca_modelo_a_equipos.sql` | Añade marca y modelo a los equipos existentes. |
 
-En Postman, selecciona **Body > raw > JSON** y copia el cuerpo correspondiente. Sustituye `destinatario@ejemplo.com` por el correo que recibira la notificacion.
+No ejecutes los scripts de nuevo manualmente después de que Flyway los haya aplicado. Para ver la base en Aiven, usa su panel SQL o un cliente MySQL con la conexión SSL configurada; la base está en la nube, no dentro de la carpeta del proyecto.
 
-#### POST `{{baseUrl}}/api/equipos`
+## Funciones y reglas de negocio
 
-```json
-{
-  "idEquipo": "EQ-101",
-  "nombre": "Laptop Lenovo ThinkPad",
-  "ubicacion": "Oficina 302"
-}
+- Un equipo nuevo se registra con código, marca, modelo y ubicación, y comienza como `ACTIVO` (operativo). El código duplicado se rechaza.
+- Una solicitud requiere un equipo activo y una descripción. El backend asigna al técnico disponible con menor carga.
+- Un técnico admite hasta cinco casos activos. El sexto intento se rechaza con conflicto HTTP 409.
+- El solicitante se registra o reutiliza por su ID. El correo de asignación forma parte del flujo de creación; si falla, el backend no confirma la solicitud.
+- Para cerrar una solicitud se requieren diagnóstico y solución. El correo de cierre se envía antes de guardar el cierre; se libera la carga del técnico al completarse.
+- El motor de revisiones se ejecuta cada 10 segundos. Al alcanzar la fecha de aviso, envía una alerta y genera una solicitud automática. Reprogramar una revisión reinicia el indicador de alerta.
+- El reporte semanal y el módulo de correo de prueba usan Brevo.
+- La API no implementa autenticación ni roles.
+
+## API disponible
+
+| Método | Ruta | Función |
+| --- | --- | --- |
+| `GET` | `/api/equipos` | Lista equipos. |
+| `POST` | `/api/equipos` | Registra equipo (`idEquipo`, `marca`, `modelo`, `ubicacion`). |
+| `POST` | `/api/equipos/{id}/fuera-de-servicio` | Marca un equipo fuera de servicio. |
+| `GET` | `/api/solicitudes` | Lista solicitudes. |
+| `POST` | `/api/solicitudes` | Registra y asigna solicitud (`equipoId`, datos del solicitante y `descripcion`). |
+| `POST` | `/api/solicitudes/{id}/cerrar` | Cierra con `diagnostico` y `solucion`. |
+| `GET` | `/api/tecnicos/carga` | Lista técnicos y ocupación. |
+| `POST` | `/api/tecnicos` | Registra un técnico. |
+| `POST` | `/api/tecnicos/{id}/asignar` | Incrementa manualmente la carga del técnico. |
+| `GET` | `/api/revisiones` | Lista revisiones preventivas. |
+| `POST` | `/api/revisiones` | Programa una revisión. |
+| `PUT` | `/api/revisiones/{id}/reprogramar` | Cambia la fecha y reinicia la alerta. |
+| `POST` | `/api/reportes/tecnicos/semanal/enviar` | Genera y envía el reporte semanal. |
+| `POST` | `/api/email/enviar` | Envía un correo de prueba. |
+
+Los errores de negocio se devuelven como JSON con `error` y `mensaje`, usando los códigos HTTP correspondientes (400, 404 o 409).
+
+## Pruebas y compilación
+
+Desde la raíz del repositorio, con JDK 21:
+
+```powershell
+mvn test
 ```
 
-#### POST `{{baseUrl}}/api/solicitudes`
+Las pruebas de integración usan Testcontainers y requieren que Docker esté disponible. Para compilar el frontend:
 
-```json
-{
-  "equipoId": "EQ-101",
-  "equipoNombre": "Laptop Lenovo ThinkPad",
-  "equipoUbicacion": "Oficina 302",
-  "solicitanteId": "USR-001",
-  "solicitanteNombre": "Williams Balan",
-  "departamento": "Sistemas",
-  "email": "destinatario@ejemplo.com",
-  "descripcion": "Mantenimiento preventivo"
-}
+```powershell
+cd frontend-app
+npm ci
+npm run build
 ```
 
-Esta peticion crea la solicitud y envia una notificacion al correo indicado en `email`.
+## Despliegue acordado en Render
 
-#### POST `{{baseUrl}}/api/email/enviar`
+El frontend estático y el backend son servicios independientes; Aiven sigue alojando MySQL.
 
-```json
-{
-  "destinatario": "destinatario@ejemplo.com",
-  "asunto": "Prueba desde Postman",
-  "cuerpo": "Correo de prueba de la API de mantenimiento."
-}
-```
+### Backend
 
-Las peticiones GET (`/api/equipos` y `/api/solicitudes`) no requieren body.
+1. Crea un **Web Service** en Render conectado a este repositorio.
+2. Selecciona el entorno **Docker** y usa el `Dockerfile` de la raíz como archivo de construcción.
+3. En **Environment**, configura las variables del backend de la tabla anterior: conexión Aiven, Brevo y CORS.
+4. `CORS_ALLOWED_ORIGINS` debe contener el origen HTTPS exacto del frontend publicado.
+5. Render proporciona `PORT`; Spring Boot lo usa automáticamente. Copia la URL HTTPS del backend.
 
- SPRINT 0 
+### Frontend estático
 
- cambios por matias: 
- 
-### Validación de Asignación de Casos a Técnicos (Sobrecarga Laboral) 
+1. Crea un **Static Site** en Render desde el mismo repositorio.
+2. Configura **Root Directory** como `frontend-app`.
+3. Usa **Build Command** `npm ci && npm run build` y **Publish Directory** `dist`.
+4. Define `VITE_API_BASE_URL` con la URL HTTPS pública del backend y despliega el sitio.
+5. Si cambias el dominio del frontend, actualiza `CORS_ALLOWED_ORIGINS` en el backend y vuelve a desplegarlo.
 
-El sistema incluye una regla de negocio que limita a 5 el número de casos activos por técnico. Para validar esta funcionalidad a través de la API (estando en la rama `main` y con la aplicación en ejecución), sigue estos pasos desde Postman:
+No se necesita publicar un archivo `render.yaml`: ambos servicios se pueden configurar desde el panel de Render. El backend requiere acceso de red a Aiven y a la API HTTPS de Brevo.
 
-1. **Crear un Técnico de Prueba:**
-   - **Método:** `POST`
-   - **Endpoint:** `http://localhost:8080/api/tecnicos`
-   - **Body (raw/JSON):**
-     ```json
-     {
-       "idUsuario": "T03",
-       "nombre": "Carlos Restrepo",
-       "departamento": "Mantenimiento",
-       "especialidad": "Sistemas"
-     }
-     ```
-2. **Asignar Casos (Acumular Carga):**
-   - **Método:** `POST`
-   - **Endpoint:** `http://localhost:8080/api/tecnicos/T03/asignar`
-   - **Acción:** Ejecuta esta petición 5 veces. Observarás que el sistema retorna un código `200 OK` en cada intento, indicando que la asignación fue exitosa.
-3. **Validar la Regla de Sobrecarga (El Bloqueo):**
-   - **Acción:** Ejecuta la misma petición de asignación por sexta vez.
-   - **Resultado Esperado:** El sistema debe retornar un código **HTTP 409 Conflict** con un cuerpo JSON indicando el error de sobrecarga laboral (Ej. `"mensaje": "El técnico Carlos Restrepo ya tiene el máximo de 5 casos asignados."`).
-4. **Verificar el Estado Final (Carga y Disponibilidad):**
-   - **Método:** `GET`
-   - **Endpoint:** `http://localhost:8080/api/tecnicos/carga`
-   - **Resultado Esperado:** En la lista, el técnico `T03` debe reflejar exactamente `5` casos activos, un estado de `OCUPADO_AL_LIMITE` y un `porcentajeOcupacion` del `100%`.
+### Pendiente para completar y verificar el despliegue
 
-## Cierre formal de solicitudes y asignación automática de técnicos
+El despliegue en Render todavía debe realizarse desde las cuentas del proyecto. La compilación local y las pruebas automatizadas no sustituyen la verificación de los servicios publicados. Sigue esta lista:
 
-### Asignación al crear una solicitud
+- [ ] Crear en Render el **Web Service** del backend usando el `Dockerfile` de la raíz.
+- [ ] Configurar en Render las variables de conexión a Aiven (`SPRING_DATASOURCE_*`) y correo (`BREVO_*`). No pegarlas en Git ni en el frontend.
+- [ ] Crear en Render el **Static Site** con raíz `frontend-app`, comando `npm ci && npm run build` y directorio publicado `dist`.
+- [ ] Configurar `VITE_API_BASE_URL` con la URL HTTPS del backend y `CORS_ALLOWED_ORIGINS` con el origen HTTPS exacto del frontend; volver a desplegar ambos servicios si se cambia una URL.
+- [ ] Revisar los logs del backend y confirmar que inicia, conecta con Aiven y Flyway aplica o valida las migraciones sin errores.
+- [ ] Abrir el frontend publicado y confirmar que las peticiones a la API no fallan por URL o CORS.
+- [ ] Hacer una prueba controlada de punta a punta en producción: registrar un equipo, crear una solicitud y comprobar la asignación y el correo, cerrar la solicitud y confirmar que se libera la carga del técnico.
+- [ ] Probar también las funciones publicadas de técnicos, revisiones preventivas, reprogramación, reporte semanal y correo de prueba; revisar las respuestas de error para datos inválidos y códigos duplicados.
+- [ ] Confirmar el comportamiento del proceso programado de revisiones con el servicio backend publicado y activo, y verificar la recepción del correo de alerta.
 
-Al recibir `POST /api/solicitudes`, el backend selecciona automáticamente al técnico que tenga menos casos activos entre los que tengan menos de cinco. Si varios técnicos comparten la menor carga, se asigna cualquiera de ellos según el orden entregado por el repositorio. El caso queda asociado a la solicitud y aumenta en uno la carga activa del técnico. El estado inicial de la solicitud pasa a `ASIGNADO`.
+Las pruebas de producción pueden crear datos persistentes en Aiven y enviar correos reales. Usa datos identificables de prueba y destinatarios controlados; al terminar, revisa la base y conserva o elimina esos datos manualmente según lo que necesite el equipo. La API no ofrece endpoints de borrado.
 
-La asignación automática no requiere enviar el identificador del técnico en el JSON. La respuesta de creación incluye la solicitud y el técnico asignado.
+## Seguridad de configuración
 
-Si no hay técnicos registrados o todos tienen cinco casos activos, la solicitud no se crea y la API responde `409 Conflict` con un mensaje que indica que no hay técnicos disponibles. La notificación por correo sigue siendo parte de la creación: si el envío falla, la solicitud no se agrega a la lista ni se asigna el caso.
-
-### Cerrar una solicitud
-
-El endpoint para registrar el trabajo y cerrar una solicitud es:
-
-`POST /api/solicitudes/{id}/cerrar`
-
-Ejemplo de cuerpo JSON:
-
-```json
-{
-  "diagnostico": "El rodamiento del motor estaba desgastado.",
-  "solucion": "Se reemplazó el rodamiento y se verificó el funcionamiento."
-}
-```
-
-Ambos campos son obligatorios y deben contener texto distinto de espacios. La API elimina espacios sobrantes al inicio y al final antes de guardar los valores. Si falta el diagnóstico o la solución, o está vacío, responde `400 Bad Request` con un objeto JSON que contiene `error` y `mensaje`; no cierra la solicitud.
-
-Cuando los datos son válidos, la solicitud pasa al estado `Cerrado`, conserva el diagnóstico y la solución, y registra `fechaHoraCierre` con la fecha y hora del servidor. La respuesta `200 OK` contiene la solicitud actualizada, incluido el técnico asignado y el historial de cierre. La fecha se serializa como fecha y hora ISO local (sin información de zona horaria).
-
-Al cerrar, el contador de casos activos del técnico asignado disminuye en uno. Así, ese técnico puede recibir nuevas solicitudes siempre que su carga vuelva a estar por debajo del máximo de cinco.
-
-### Respuestas para situaciones no válidas
-
-- Solicitud inexistente: `404 Not Found`, con `error` y `mensaje`.
-- Solicitud ya cerrada: `409 Conflict`; se conserva el cierre original.
-- Solicitud sin diagnóstico o solución válida: `400 Bad Request`; el estado permanece sin cerrar.
-- Todos los técnicos ocupados o sin técnicos registrados al crear una solicitud: `409 Conflict`; no se crea la solicitud.
-- Error de envío del correo al crear la solicitud: la operación falla y la solicitud no se registra.
-
-### Persistencia y alcance
-
-Los técnicos y las solicitudes se mantienen en memoria, como el resto de los datos de esta aplicación; se pierden al reiniciar el proceso. La asignación automática se aplica a solicitudes nuevas creadas mediante `POST /api/solicitudes`. El endpoint previo `POST /api/tecnicos/{id}/asignar` continúa incrementando únicamente el contador manual del técnico y no queda asociado a una solicitud específica. Este backend no incluye interfaz gráfica: el cliente que lo consuma debe llamar al endpoint de cierre y mostrar el `mensaje` de error cuando la API rechace la petición.
-
-### Notificaciones por cambio de estado
-
-Cada transición de estado de una solicitud notifica por correo al email guardado para su solicitante. Al crear la solicitud se envía el estado `ASIGNADO`, el equipo y el técnico asignado. Al cerrarla se envía el estado `Cerrado`, el equipo, el diagnóstico y la solución. Si el envío de cualquiera de estas notificaciones falla, la transición correspondiente no se aplica: al crear, la solicitud no se registra; al cerrar, conserva su estado y datos anteriores. Los intentos rechazados por datos inválidos, solicitud inexistente o solicitud ya cerrada no generan notificación porque no cambian el estado.
-
-### Secuencia Postman para comprobar el flujo
-
-Antes de iniciar, configura `MAIL_USERNAME` y `MAIL_PASSWORD` en el entorno del backend, inicia la aplicación y confirma que el correo del solicitante de prueba puede recibir mensajes. En Postman ejecuta estas peticiones en el orden indicado. Para volver a empezar con los técnicos de prueba y el contador de solicitudes inicial, reinicia la aplicación; los datos son en memoria.
-
-1. **Consultar técnicos y carga inicial**
-
-   `GET http://localhost:8080/api/tecnicos/carga`
-
-   Deben aparecer los técnicos de prueba (por ejemplo `T01` y `T02`) con cero casos activos.
-
-2. **Crear una solicitud y verificar asignación y notificación**
-
-   `POST http://localhost:8080/api/solicitudes`
-
-   Header: `Content-Type: application/json`
-
-   ```json
-   {
-     "equipoId": "EQ-101",
-     "equipoNombre": "Laptop Lenovo ThinkPad",
-     "equipoUbicacion": "Oficina 302",
-     "solicitanteId": "USR-001",
-     "solicitanteNombre": "Williams Balan",
-     "departamento": "Sistemas",
-     "email": "tu-correo-de-prueba@example.com",
-     "descripcion": "Mantenimiento preventivo"
-   }
-   ```
-
-   Espera `201 Created`; la respuesta contiene el `idSolicitud`, `estado: ASIGNADO` y `tecnicoAsignado`. Comprueba que llegó el correo de asignación. Con el estado inicial de una ejecución limpia, el identificador será `1001`; usa el identificador real devuelto para los pasos siguientes.
-
-3. **Confirmar que la solicitud aparece en el historial**
-
-   `GET http://localhost:8080/api/solicitudes`
-
-   La lista debe contener la solicitud creada y el técnico asignado.
-
-4. **Intentar cerrar sin diagnóstico**
-
-   `POST http://localhost:8080/api/solicitudes/1001/cerrar`
-
-   ```json
-   {
-     "diagnostico": "",
-     "solucion": "Se reemplazó el componente."
-   }
-   ```
-
-   Espera `400 Bad Request`, con `error` y `mensaje`. La solicitud debe continuar en `ASIGNADO` y no debe enviarse un correo de cierre. Si el identificador devuelto en el paso 2 no es `1001`, reemplázalo en esta y las siguientes peticiones.
-
-5. **Cerrar correctamente y verificar notificación**
-
-   `POST http://localhost:8080/api/solicitudes/1001/cerrar`
-
-   ```json
-   {
-     "diagnostico": "El rodamiento del motor estaba desgastado.",
-     "solucion": "Se reemplazó el rodamiento y se verificó el funcionamiento."
-   }
-   ```
-
-   Espera `200 OK`. La respuesta debe incluir `estado: Cerrado`, los campos `diagnostico` y `solucion`, y `fechaHoraCierre`. Comprueba que llegó el correo de cierre al mismo solicitante.
-
-6. **Verificar historial y liberación de carga**
-
-   Ejecuta de nuevo `GET http://localhost:8080/api/solicitudes` y `GET http://localhost:8080/api/tecnicos/carga`. La solicitud debe seguir cerrada con su historial y la carga activa del técnico asignado debe haber disminuido en uno.
-
-7. **Comprobar que un cierre repetido se rechaza**
-
-   Repite la petición de cierre del paso 5 para el mismo identificador. Espera `409 Conflict`; el cierre original debe conservarse y no debe enviarse otra notificación de cambio de estado.
-
-Si el correo falla por configuración o destinatario, la API no confirma una transición exitosa. Revisa las variables `MAIL_USERNAME` y `MAIL_PASSWORD` y los registros de la aplicación antes de repetir el paso.
+- No subas `.env`, `.env.local`, contraseñas JDBC, claves de Brevo ni credenciales de Aiven.
+- `frontend-app/.env.example` contiene solo una URL local de ejemplo. Nunca pongas secretos en variables `VITE_*`: Vite las incorpora en los archivos públicos del frontend.
+- Si una credencial se expone accidentalmente, revócala y genera otra en el proveedor correspondiente.

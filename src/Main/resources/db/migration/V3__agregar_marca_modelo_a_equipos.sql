@@ -1,0 +1,3 @@
+ALTER TABLE equipos
+    ADD COLUMN marca VARCHAR(120) NULL AFTER nombre,
+    ADD COLUMN modelo VARCHAR(120) NULL AFTER marca;

@@ -1,5 +1,6 @@
 package domain.model;
 
+import domain.exeptions.SolicitudInvalidaException;
 import domain.repository.TecnicoRepository;
 import service.EmailService;
 import service.SolicitudService;
@@ -118,5 +119,25 @@ public class SolicitudServiceTest {
                 contains("cerrada"),
                 contains("Reconexión de cable SATA")
         );
+    }
+
+    @Test
+    @DisplayName("4. Lanza SolicitudInvalidaException si el equipo está marcado como Fuera de servicio")
+    void deberiaLanzarExcepcionCuandoEquipoEstaFueraDeServicio() {
+        // Arrange
+        Equipo equipoMalo = new Equipo("EQ-999", "Motor Principal", "Planta 1");
+        equipoMalo.marcarFueraDeServicio();
+
+        UsuarioSolicitante solicitante = new UsuarioSolicitante("USR-004", "Ana", "ana@empresa.com");
+
+        // Act & Assert
+        SolicitudInvalidaException excepcion = assertThrows(
+                SolicitudInvalidaException.class,
+                () -> solicitudService.crearSolicitud(equipoMalo, solicitante, "El motor echa humo")
+        );
+
+        assertTrue(excepcion.getMessage().contains("está Fuera de servicio"));
+        verifyNoInteractions(emailService);
+        verifyNoInteractions(tecnicoRepository);
     }
 }

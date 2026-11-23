@@ -1,16 +1,28 @@
 package domain.model;
 
 import domain.exeptions.SobrecargaLaboralException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Entity
+@Table(name = "tecnicos")
 public class Tecnico extends Usuario {
 
     private static final Logger logger = LoggerFactory.getLogger(Tecnico.class);
 
+    @Column(name = "especialidad", length = 120, nullable = false)
     private String especialidad;
+
+    @Column(name = "casos_activos", nullable = false)
     private int casosActivos;
     private static final int MAX_CASOS = 5;
+
+    protected Tecnico() {
+        super();
+    }
 
     public Tecnico(String idUsuario, String nombre, String departamento, String especialidad) {
         super(idUsuario, nombre, departamento);

@@ -9,6 +9,8 @@ import service.EquipoService;
 import service.RevisionService;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/revisiones")
@@ -22,13 +24,16 @@ public class RevisionAPI {
         this.equipoService = equipoService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<RevisionPreventiva>> listarRevisiones() {
+        return ResponseEntity.ok(revisionService.obtenerTodas());
+    }
+
     @PostMapping
     public ResponseEntity<String> registrarRevision(@RequestBody CrearRevisionRequest request) {
-        // Busca el equipo en el repositorio en memoria actual
-        Equipo equipo = equipoService.obtenerTodos().stream()
-                .filter(e -> e.getIdEquipo().equals(request.equipoId()))
-                .findFirst()
-                .orElse(new Equipo(request.equipoId(), "Equipo Desconocido", "Ubicación Desconocida"));
+        Equipo equipo = equipoService.buscarPorId(request.equipoId())
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No existe el equipo " + request.equipoId() + "."));
 
         RevisionPreventiva revision = new RevisionPreventiva(
                 request.idRevision(),
